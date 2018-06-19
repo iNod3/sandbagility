@@ -156,7 +156,7 @@ class Helper():
     def unset_breakpoint(self, address, cr3, handler):
 
         ID = self.breakpoints[address].delete_breakpoint(cr3, handler)
-        self.logger.debug("Unset breakpoint %x at %x", ID, address)
+        self.logger.debug("Unset breakpoint %s at %s", ID, address)
 
         if self.breakpoints[address].is_empty():
             self.breakpoints.pop(address)
