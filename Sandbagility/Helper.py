@@ -281,7 +281,7 @@ class Helper():
         if address is None:
             raise Exception('SetBreakpointError: cannot resolve %s' % target)
 
-        self.logger.warning('Set hardware breakpoint register %d with %s' % (dr, target))
+        # self.logger.warning('Set hardware breakpoint register %d with %s' % (dr, target))
 
         self.dbg.SetBreakpointHardware(address, dr=dr, access=access, length=1)
         return self.add_breakpoint(address, handler, BpId=254, cr3=cr3)
@@ -755,7 +755,9 @@ class Helper():
 
         return None
 
-    def SymLookupByAddress(self, Address, Process):
+    def SymLookupByAddress(self, Address, Process=None):
+
+        if Process is None: Process = self.PsGetCurrentProcess()
 
         Module = self.SymGetUserModuleByAddress(Address=Address, Process=Process)
         if Module is None: return None
