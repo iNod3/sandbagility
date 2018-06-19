@@ -395,9 +395,7 @@ class Symbol():
         @ctypes.CFUNCTYPE(ctypes.c_bool, ctypes.POINTER(Symbol.SYM_INFO), ctypes.c_ulong, ctypes.py_object)
         def Callback(SymInfo, SymbolSize, UserContext):
 
-            for address in UserContext:
-                UserContext[address] = SymInfo[0].Name
-                if address == SymInfo[0].Address: return False
+            UserContext[SymInfo[0].Address] = SymInfo[0].Name
             return True
 
         if Address in self._cache: return self._cache[Address]
@@ -409,14 +407,16 @@ class Symbol():
                     ModuleName = module
                     break
 
-        if not ModuleBase: return None
+        if not ModuleBase: return None        
 
-        UserContext = {Address: b''}
+        UserContext = {}
         Status = self.dbghelp.SymEnumSymbols(self.hProcess, ctypes.c_uint64(ModuleBase), "*".encode('utf8'), Callback, UserContext)
 
         if Status:
-            self._cache[Address] = '%s!%s' % ( ModuleName, UserContext[Address].decode('utf8') )
-            return self._cache[Address]
+            for addr in UserContext:
+                self._cache[addr] = '%s!%s' % ( ModuleName, UserContext[addr].decode('utf8') )
+        
+        if Address in self._cache: return self._cache[Address] 
         else: return None
 
     def SymGetModuleByAddress(self, Address):
