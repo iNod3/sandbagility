@@ -74,6 +74,7 @@ class Monitor():
 
         self.helper = helper
         self.mode = mode
+        self.Process = Process
 
         if Process is not None:
             self.cr3 = Process.DirectoryTableBase
