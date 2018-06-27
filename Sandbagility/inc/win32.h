@@ -259,3 +259,28 @@ BOOL WINAPI WriteFile(
 	_Inout_opt_ LPOVERLAPPED lpOverlapped
 );
 
+DWORD WINAPI send(
+	_In_ SOCKET Socket,
+	_In_ BYTE *Buffer,
+	_In_ DWORD Length,
+	_In_ DWORD Flags
+);
+
+DWORD WINAPI recv(
+	_In_ SOCKET Socket,
+	_Out_ BYTE *Buffer,
+	_In_ DWORD Length,
+	_In_ DWORD Flags
+);
+
+DWORD WINAPI connect(
+	_In_ SOCKET Socket,
+	_In_ BYTE *Addr,
+	_In_ DWORD NameLength
+);
+
+DWORD WINAPI bind(
+	_In_ SOCKET Socket,
+	_In_ BYTE *Addr,
+	_In_ DWORD NameLength
+);
