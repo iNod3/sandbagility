@@ -117,14 +117,25 @@ class Monitor():
         return not self.__eq__(other)
 
     def LookupByName(self, symbol):
+
         if symbol not in self._cache:
-            address = self.helper.SymLookupByName(symbol)
+            address = self.helper.symbol.LookupByName(symbol)
             self._cache[symbol] = address
             self._cache[address] = symbol
+
         return self._cache[symbol]
 
-    def LookupByAddr(self, address):
-        return self._cache[address]
+    def LookupByAddr(self, Address):
+        
+        if Address not in self._cache:
+            Symbol = self.helper.SymLookupByAddress(Address)
+            if Symbol is None: 
+                print(Address, Symbol)
+                return ''
+            
+            self._cache[Address] = Symbol
+        
+        return self._cache[Address] 
 
     def DisableInfoLog(self): self.EnableInfoLog = False
 
