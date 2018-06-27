@@ -412,6 +412,7 @@ class Symbol():
 
         if Status:
             for addr in UserContext:
+                if addr in self._cache: continue
                 self._cache[addr] = '%s!%s' % ( ModuleName, UserContext[addr].decode('utf8') )
         
         if Address in self._cache: return self._cache[Address] 
