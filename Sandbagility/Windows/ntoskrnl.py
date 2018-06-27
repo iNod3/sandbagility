@@ -377,12 +377,12 @@ class ProcessObject(dummy):
 
     def __eq__(self, other):
 
-        if isinstance(other, str):
-            return self.ImageFileName.lower() == other.lower()
+        if isinstance(other, ProcessObject):
+            return self.eprocess == other.eprocess
         elif isinstance(other, int):
             return self.UniqueProcessId == other
-        elif isinstance(other, ProcessObject):
-            return self.eprocess == other.eprocess
+        elif isinstance(other, str):
+            return self.ImageFileName.lower() == other.lower()
         else:
             self.logger.warning('ProcessObject.__eq__: Invalid other type %s', type(other))
             return False
