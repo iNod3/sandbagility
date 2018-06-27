@@ -347,12 +347,10 @@ class Symbol():
                     '''
                     _cache_copy = self._cache.copy()
                     for cached_key, cached_value in _cache_copy.items():
-                        if isinstance(cached_key, str) and module in cached_key: 
+                        if isinstance(cached_key, str) and module.lower() in cached_key.lower(): 
                             del self._cache[cached_key]
-                        if isinstance(cached_value, str) and module in cached_value: 
+                        if isinstance(cached_value, str) and module.lower() in cached_value.lower(): 
                             del self._cache[cached_key]
-                        
-                    # self._cache = _cache_copy
 
             if not os.path.exists(pdbname) and not self.SymDownloadPdbFile(pdbname):
                 raise Exception('SymLoadModuleError: {} not found'.format(pdbname))
