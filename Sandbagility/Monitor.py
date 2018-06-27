@@ -284,8 +284,7 @@ class Monitor():
                 Status = func(self, *args, **kwargs)
 
                 if not self.LastOperation.isEmpty:
-                    self.LastOperation.Save(
-                        StartTimestamp=StartTimestamp, StopTimestamp=time.time())
+                    self.LastOperation.Save(StartTimestamp=StartTimestamp, StopTimestamp=time.time())
 
             if not self.PostCallbacks:
                 pass
@@ -425,10 +424,8 @@ class KernelGenericMonitor(KernelMonitor):
         '''
         self.FunctionName = self.__get_function_name__()
 
-        Prototype = self.helper.symbol.SymGetSyscallPrototype(
-            self.FunctionName)
-        Parameters = self.ReadParameters(
-            Prototype, Callback=self.__pre_process_parameters__)
+        Prototype = self.helper.symbol.SymGetSyscallPrototype(self.FunctionName)
+        Parameters = self.ReadParameters(Prototype, Callback=self.__pre_process_parameters__)
 
         if hasattr(self, '__post_process_parameters__'):
             self.__post_process_parameters__(Parameters, Prototype)
