@@ -541,7 +541,8 @@ class Helper():
                 idx = size
             if idx % 2 != 0:
                 idx += 1
-            return data[:idx].decode('utf-16')
+            try: return data[:idx].decode('utf-16')
+            except: return None
 
     def PsEnumLoadedModule(self, *args, **kwargs):
         return self.os.PsEnumLoadedModule(*args, **kwargs)
@@ -601,23 +602,22 @@ class Helper():
     def MoGetDebugInformation(self, *args, **kwargs):
         return self.os.MoGetRsdsDebugInformation(*args, **kwargs)
 
-    def MoGetModuleByName(self, module):
+    def MoGetModuleByName(self, module, Process=None):
 
-        ActiveProcess = self.PsGetCurrentProcess(loadLdr=True)
+        if Process is None: ActiveProcess = self.PsGetCurrentProcess(loadLdr=True)
+        else: ActiveProcess = Process
 
         if ActiveProcess.WoW64Process and ActiveProcess.LdrData32:
             for Module in ActiveProcess.LdrData32.Modules:
                 if module in Module.FullDllName:
                     return Module
+
         if ActiveProcess.LdrData:
             for Module in ActiveProcess.LdrData.Modules:
                 if module in Module.FullDllName:
                     return Module
 
         return None
-
-    def SymLookupByName(self, *args, **kwargs):
-        return self.symbol.LookupByName(*args, **kwargs)
 
     def SymGetModulePdbPath(self, Module):
 
@@ -735,9 +735,14 @@ class Helper():
         return Status
 
     def SymIsAddressInUserModule(self, Module, Address):
-        if Module.DllBase < Address < (Module.DllBase + Module.SizeOfImage):
-            return True
-        return False
+        if hasattr(Module, 'DllBase'):
+            if Module.DllBase < Address < (Module.DllBase + Module.SizeOfImage):
+                return True
+            return False
+        elif hasattr(Module, 'ImageBase'):
+            if Module.ImageBase < Address < (Module.ImageBase + Module.ImageSize):
+                return True
+            return False
 
     def SymGetUserModuleByAddress(self, Address, Process):
 
@@ -755,14 +760,42 @@ class Helper():
 
         return None
 
+    def SymGetKernelModuleByAddress(self, Address):
+
+        for Module in self.PsEnumLoadedModule():
+            if not self.SymIsAddressInUserModule(Module, Address):
+                continue
+            return Module
+
+        return None
+
     def SymLookupByAddress(self, Address, Process=None):
 
-        if Process is None: Process = self.PsGetCurrentProcess()
+        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
 
-        Module = self.SymGetUserModuleByAddress(Address=Address, Process=Process)
-        if Module is None: return None
+        if not (Address & 0xfff0000000000000):
+            Module = self.SymGetUserModuleByAddress(Address=Address, Process=Process)
+            if Module is None: return None
+            ImageBase = Module.DllBase
+        else:
+            Module = self.SymGetKernelModuleByAddress(Address=Address)
+            if Module is None: return None
+            ImageBase = Module.ImageBase
 
-        if not self.SymReloadModule(Module.DllBase): 
+        if not self.SymReloadModule(ImageBase): 
             return None
 
         return self.symbol.LookupByAddr(Address)
+
+    def SymLookupByName(self, Symbol, Process=None):
+
+        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
+
+        if Symbol.find('!') != -1:
+            Module = self.MoGetModuleByName(Symbol.split('!')[0])
+            if Module is None: return None
+
+            if not self.SymReloadModule(Module.DllBase):
+                return None
+
+        return self.symbol.LookupByName(Symbol)
