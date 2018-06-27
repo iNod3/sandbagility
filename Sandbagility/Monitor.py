@@ -49,7 +49,7 @@ class Monitor():
 
     @property
     def Dependencies(self):
-        return self._DEPENDENCIES
+        return [ d.lower() for d in self._DEPENDENCIES ]
 
     @property
     def ActiveProcess(self):
@@ -307,8 +307,8 @@ class KernelMonitor(Monitor):
 
         self.Installed = False
 
-        if self._DEPENDENCIES != None:
-            Status = self.helper.SymReloadKernelModule(self._DEPENDENCIES)
+        if self.Dependencies != None:
+            Status = self.helper.SymReloadKernelModule(self.Dependencies)
 
             if Status and hasattr(self, '__install__'):
 
@@ -459,19 +459,17 @@ class UserlandMonitor(Monitor):
         if not hasattr(self, '__install__'):
             return
 
-        if self._DEPENDENCIES is None:
+        if self.Dependencies is None:
             Status = self.__install__()
+
         elif Process is None or self.ActiveProcess.DirectoryTableBase == Process.DirectoryTableBase:
 
-            Status = self.helper.SymReloadUserModule(self._DEPENDENCIES)
+            Status = self.helper.SymReloadUserModule(self.Dependencies)
 
             if not Status:
                 return
             if self.cr3 is None or self.ActiveProcess.DirectoryTableBase == self.cr3:
                 Status = self.__install__()
-
-        elif self._DEPENDENCIES is None:
-            Status = self.__install__()
 
         if Status:
             self.Installed = True
@@ -546,14 +544,14 @@ class UserlandMonitor(Monitor):
 
                 return True
 
-        if len(self.NotifiedLoadImage) == len(self._DEPENDENCIES):
+        if len(self.NotifiedLoadImage) == len(self.Dependencies):
             self.Installed = True
             return True
 
         ImageName = os.path.split(NotifyLoadImage.FullImageName)[-1]
         if self.ActiveProcess.WoW64Process and NotifyLoadImage.Properties.Flag.ImageSignatureType == 1:
             return False
-        if ImageName.lower() not in self._DEPENDENCIES:
+        if ImageName.lower() not in self.Dependencies:
             return False
         if ImageName.lower() in self.NotifiedLoadImage:
             return True
