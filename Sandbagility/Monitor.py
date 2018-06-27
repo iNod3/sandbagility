@@ -591,9 +591,9 @@ class UserlandMonitor(Monitor):
             address = target
 
         if self.helper.ReadVirtualMemory(address, 1) is None:
-            self.logger.warning(
-                'SetBreakpointError: cannot paged out address %x for %s', address, target)
-            raise Exception('ReadVirtualMemoryError')
+            self.logger.warning('SetBreakpointError: cannot paged out address %x for %s', address, target)
+            #raise Exception('ReadVirtualMemoryError')
+            return
 
         return self.helper.SetBreakpoint(address, handler, self.cr3, description=target)
 
