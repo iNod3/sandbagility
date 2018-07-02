@@ -303,8 +303,8 @@ class Symbol():
     def SymGetLoadedModuleByAddress(self, Address):
 
         for name, module in self.loaded_modules.items():
-            if not module['Address'] == Address: continue
-            return module
+            if module['Address'] <= Address < (module['Address'] + module['Size']): 
+                return module
         return None
 
     def SymDownloadPdbFile(self, pdb):
