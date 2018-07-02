@@ -789,14 +789,18 @@ class Windows(OsHelper):
         '''
             @brief Enumerate all process linked by the ActiveProcessLink
         '''
+        yields = []
+
         ActiveProcessLinkOffset = self.helper.symbol.GetStructureMemberOffset('nt!_EPROCESS', 'ActiveProcessLinks')
 
         PsActiveProcessHead = self.helper.SymLookupByName('PsActiveProcessHead')
         ActiveProcessLink = self.helper.ReadVirtualMemory64(PsActiveProcessHead)
 
         while PsActiveProcessHead != ActiveProcessLink:
-            yield ProcessObject(self.helper, ActiveProcessLink - ActiveProcessLinkOffset, loadLdr=loadLdr)
+            yields.append( ProcessObject(self.helper, ActiveProcessLink - ActiveProcessLinkOffset, loadLdr=loadLdr) )
             ActiveProcessLink = self.helper.ReadVirtualMemory64(ActiveProcessLink)
+
+        return yields
 
     def PsLookupProcessByProcessId(self, ProcessId, *args, **kwargs):
         '''
@@ -813,12 +817,16 @@ class Windows(OsHelper):
 
     def PsLookupProcessByProcessName(self, ProcessName, *args, **kwargs):
 
+        yields = []
+
         for Process in self.PsEnumProcesses(*args, **kwargs):
             if isinstance(ProcessName, str):
-                if Process == ProcessName: yield Process
+                if Process == ProcessName: yields.append( Process )
             elif isinstance(ProcessName, list):
                 for SingleProcessName in ProcessName:
-                    if Process == SingleProcessName: yield Process
+                    if Process == SingleProcessName: yields.append( Process )
+
+        return yields
 
     def PsEnumLoadedModule(self):
         '''
@@ -854,6 +862,8 @@ class Windows(OsHelper):
 
             ]
 
+        yields = []
+
         '''
             Retrieve the address of the PsLoadedModuleList
         '''
@@ -885,10 +895,12 @@ class Windows(OsHelper):
             '''
                 Yield all the result for an iteration purpose
             '''
-            yield LdModule
+            yields.append(LdModule)
 
             LoadedModuleDatabaseEntryAddress = self.helper.ReadVirtualMemory64(LoadedModuleDatabaseEntryAddress)
     
+        return yields
+
     def KeGetGsVirtualAddress(self):
         return self.__get_gs_base_address__()
 
