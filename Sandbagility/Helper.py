@@ -617,6 +617,10 @@ class Helper():
                 if module in Module.FullDllName:
                     return Module
 
+        for Module in self.PsEnumLoadedModule():
+            if module in Module.DriverName:
+                return Module
+
         return None
 
     def SymGetModulePdbPath(self, Module):
@@ -762,6 +766,9 @@ class Helper():
 
     def SymGetKernelModuleByAddress(self, Address):
 
+        Module = self.symbol.SymGetLoadedModuleByAddress(Address)
+        if Module is not None: return Module
+
         for Module in self.PsEnumLoadedModule():
             if not self.SymIsAddressInUserModule(Module, Address):
                 continue
@@ -778,9 +785,14 @@ class Helper():
             if Module is None: return None
             ImageBase = Module.DllBase
         else:
+            ''' TODO Create module class to make use of module more
+            consistent between modules from userland, kernelland and symbol 
+            '''
             Module = self.SymGetKernelModuleByAddress(Address=Address)
             if Module is None: return None
-            ImageBase = Module.ImageBase
+            elif isinstance(Module, dict): ImageBase = Module['Base']
+            elif hasattr(Module, 'ImageBase'): ImageBase = Module.ImageBase
+            else: return None
 
         if not self.SymReloadModule(ImageBase): 
             return None
@@ -795,7 +807,11 @@ class Helper():
             Module = self.MoGetModuleByName(Symbol.split('!')[0])
             if Module is None: return None
 
-            if not self.SymReloadModule(Module.DllBase):
+            if hasattr(Module, 'DllBase'): ImageBase = Module.DllBase
+            elif hasattr(Module, 'ImageBase'): ImageBase = Module.ImageBase
+            else: return None
+
+            if not self.SymReloadModule(ImageBase):
                 return None
 
         return self.symbol.LookupByName(Symbol)
