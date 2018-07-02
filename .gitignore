@@ -3,3 +3,5 @@ __pycache__
 
 Sandbagility/Monitors/*
 Sandbagility/Plugins/*
+/build
+*.pyproj
