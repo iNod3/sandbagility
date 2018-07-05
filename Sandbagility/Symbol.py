@@ -220,6 +220,7 @@ class Symbol():
 
     def SymGetSyscallPrototype(self, syscall, callback=None):
 
+        if not syscall: return None
         if syscall in self._cache_prototypes: return self._cache_prototypes[syscall]
         if self.NtApiFileContent.find(syscall) == -1: return None
 
@@ -232,7 +233,8 @@ class Symbol():
         '''
             @Brief read input parameters
         '''
-        rawPrototype = re.findall(rePattern, self.NtApiFileContent)[0]
+        try: rawPrototype = re.findall(rePattern, self.NtApiFileContent)[0]
+        except: raise Exception('SymbolError: cannot retrieve protoype for %s' % syscall)
 
         for Parameter in rawPrototype.split('\n'):
 
@@ -263,7 +265,7 @@ class Symbol():
         PrototypeInfo = []
 
         rePattern = '([A-Z]+) WINAPI %s\(([^;]*)\);' % api
-        reParameter = '((_\S*_).*) (([A-Z|_]+) \**)\s*([^,]*)'
+        reParameter = '((_\S*_)[^A-Z]*) (([A-Z|_]+)\s*\**)\s*([^,]*)'
 
         try: Return, Prototype = re.findall(rePattern, self.Win32FileContent)[0]
         except: raise Exception('SymbolError: Cannot retrieve the prototype for %s' % api)
