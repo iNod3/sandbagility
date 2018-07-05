@@ -73,6 +73,17 @@ BOOL WINAPI CryptAcquireContext(
   _In_   DWORD dwFlags
 );
 
+BOOL WINAPI CryptDecodeObjectEx(
+	_In_ DWORD              dwCertEncodingType,
+	_In_ LPCSTR             lpszStructType,
+	_In_ const BYTE         *pbEncoded,
+	_In_ DWORD              cbEncoded,
+	_In_ DWORD              dwFlags,
+	_In_ PCRYPT_DECODE_PARA pDecodePara,
+	_In_Out_ LPVOID               pvStructInfo,
+	_In_Out_ DWORD              *pcbStructInfo
+);
+
 HRSRC WINAPI FindResource(
   _In_opt_  HMODULE hModule,
   _In_      LPCTSTR lpName,
@@ -283,4 +294,24 @@ DWORD WINAPI bind(
 	_In_ SOCKET Socket,
 	_In_ BYTE *Addr,
 	_In_ DWORD NameLength
+);
+
+HANDLE WINAPI CreateMutex(
+	_In_ LPSECURITY_ATTRIBUTES lpMutexAttributes,
+	_In_ BOOL bInitialOwner,
+	_In_ LPCTSTR lpName
+);
+
+HANDLE WINAPI CreateMutexEx(
+	_In_ LPSECURITY_ATTRIBUTES lpMutexAttributes,
+	_In_ LPCTSTR lpName,
+	_In_ DWORD dwFlags,
+	_In_ DWORD dwDesiredAccess
+);
+
+HANDLE WINAPI CreateEventEx(
+	_In_ LPSECURITY_ATTRIBUTES lpMutexAttributes,
+	_In_ LPCTSTR lpName,
+	_In_ DWORD dwFlags,
+	_In_ DWORD dwDesiredAccess
 );
