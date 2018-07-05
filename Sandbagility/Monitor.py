@@ -664,8 +664,7 @@ class UserlandGenericMonitor(UserlandMonitor):
             elif Value == 18446744073709551610:
                 Value = 'CurrentToken__'
             else:
-                Parameters.Object = self.ActiveProcess.ObReferenceObjectByHandle(
-                    Value)
+                if Value: Parameters.Object = self.ActiveProcess.ObReferenceObjectByHandle(Value)
 
         return Value
 
