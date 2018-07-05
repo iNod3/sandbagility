@@ -278,8 +278,10 @@ class Helper():
     def SetHardwareBreakpoint(self, target, access, handler, dr=0, cr3=None):
 
         address = self.__lookup_target_into_address__(target)
-        if address is None:
-            raise Exception('SetBreakpointError: cannot resolve %s' % target)
+        if address is None: 
+            self.logger.warning('SetBreakpointError: cannot resolve %s on dr%d' % (target, dr))
+            return None
+            #raise Exception('SetBreakpointError: cannot resolve %s' % target)
 
         # self.logger.warning('Set hardware breakpoint register %d with %s' % (dr, target))
 
@@ -740,7 +742,7 @@ class Helper():
 
     def SymIsAddressInUserModule(self, Module, Address):
         if hasattr(Module, 'DllBase'):
-            if Module.DllBase < Address < (Module.DllBase + Module.SizeOfImage):
+            if Module.DllBase <= Address <= (Module.DllBase + Module.SizeOfImage):
                 return True
             return False
         elif hasattr(Module, 'ImageBase'):
@@ -748,7 +750,9 @@ class Helper():
                 return True
             return False
 
-    def SymGetUserModuleByAddress(self, Address, Process):
+    def SymGetUserModuleByAddress(self, Address, Process=None):
+
+        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
 
         if Process.WoW64Process and Process.LdrData32:
             for Module in Process.LdrData32.Modules:
@@ -763,6 +767,13 @@ class Helper():
                 return Module
 
         return None
+
+    def SymGetUserModuleNameByAddress(self, Address, Process=None):
+
+        Module = self.SymGetUserModuleByAddress(Address, Process=Process)
+        if Module is None: return None
+
+        return str(Module.FullDllName)
 
     def SymGetKernelModuleByAddress(self, Address):
 
