@@ -422,6 +422,9 @@ class ProcessObject(dummy):
             self.__parse_peb32__(Detail=Detail)
             self.__parse_rtl_user_process_paramters__()
 
+        self.VadRoot = EProcess.VadRoot
+        if Detail: self.Vads = sorted( self.__parse_vad__(self.VadRoot), key=lambda x: x.Start )
+
         if self.ImageFileName is None:
             self.ImageFileName = bytes(EProcess.ImageFileName)
             self.ImageFileName = self.ImageFileName[0:self.ImageFileName.find(b'\x00')].decode()
@@ -482,6 +485,49 @@ class ProcessObject(dummy):
 
         self.CommandLine = self.helper.ReadUnicodeString(CommandLinePtr)
 
+    def __parse_vad__(self, VAD, Level=1):
+
+        class MmVadShort(dummy):
+
+            def __str__(self):
+                return '{VAD:16x} {Level} {Start:16x} {End:16x} {Commit:10d} {Mapping:>10} {Protect}'.format(**self.__dict__)
+
+        BalancedNode = self.helper.ReadStructure(VAD, 'nt!_MMVAD_SHORT')
+        LeftAddr = self.helper.ReadVirtualMemory64(VAD)
+        RightAddr = self.helper.ReadVirtualMemory64(VAD+8)
+    
+        if BalancedNode.u1 >> 31: Mapping = 'Private'
+        else: Mapping = 'Mapped'
+    
+        if (BalancedNode.u & 0xff) == 0x20: Protect = 'READWRITE'
+        elif (BalancedNode.u & 0xff) == 0x30: Protect = 'EXECUTE_READWRITE'
+        elif (BalancedNode.u & 0xff) == 0x08: Protect = 'READONLY'
+        elif (BalancedNode.u & 0xff) == 0x3a: Protect = 'EXECUTE_WRITECOPY'
+        else: Protect = BalancedNode.u
+
+        Commit = BalancedNode.u1 & ~0x80000000
+    
+        if LeftAddr != 0: left = self.__parse_vad__(LeftAddr, Level=Level+1)
+        else: left = []
+
+        if RightAddr != 0: right = self.__parse_vad__(RightAddr, Level=Level+1)
+        else: right = []
+
+        cMmVadShort = MmVadShort()
+        cMmVadShort.VAD = VAD
+        cMmVadShort.Level = Level
+        cMmVadShort.Start = (((BalancedNode.StartingVpnHigh << 32) | BalancedNode.StartingVpn) << 12 )
+        cMmVadShort.End = ((((BalancedNode.EndingVpnHigh << 32) | BalancedNode.EndingVpn << 12)) | 0xfff )
+        cMmVadShort.Mapping = Mapping
+        cMmVadShort.Commit = Commit
+        cMmVadShort.Protect = Protect
+
+        return [ cMmVadShort ] + left + right
+
+    def MmGetVads(self):
+        if not hasattr(self, 'vads'): self.vads = self.__parse_vad__(self.VadRoot)
+        return self.vads
+
     def __ObReferenceObjectByHandle__(self, Handle):
 
         HANDLE_TO_OFFSET = 4
@@ -538,6 +584,7 @@ class ProcessObject(dummy):
         else: return NtObject
 
     def __str__(self):
+
         str_ = '\n'
         str_ += 'PROCESS %.16x\n' % self.eprocess
         str_ += 'SessionId: {:>8x}  Cid: {}    Peb: {:16x}  ParentCid: {:4x}\n'.format(
@@ -553,6 +600,11 @@ class ProcessObject(dummy):
             if hasattr(self.LdrData32, 'Modules'):
                 for module in self.LdrData32.Modules:
                     str_ += '%s\n' % module
+
+        if hasattr(self, 'Vads'):
+            str_ += '\n'
+            for vad in self.Vads: 
+                str_ += '\t%s\n' % str(vad)
 
         return str_
 

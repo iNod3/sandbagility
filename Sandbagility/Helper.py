@@ -625,6 +625,13 @@ class Helper():
 
         return None
 
+    def MmGetProcessMemoryLayout(self, Process=None):
+
+        if Process is None: ActiveProcess = self.PsGetCurrentProcess(Detail=True)
+        else: ActiveProcess = Process
+
+        return ActiveProcess.Vads
+
     def SymGetModulePdbPath(self, Module):
 
         if isinstance(Module, int):
