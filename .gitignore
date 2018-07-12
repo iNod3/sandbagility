@@ -5,3 +5,4 @@ Sandbagility/Monitors/*
 Sandbagility/Plugins/*
 /build
 *.pyproj
+*.pyc
