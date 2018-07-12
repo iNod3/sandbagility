@@ -1018,6 +1018,7 @@ class Windows(OsHelper):
         _IMAGE_DATA_DIRECTORY = self.helper.symbol.PdbToCTypes('nt!_IMAGE_DATA_DIRECTORY')
 
         ImageOptionalHeader = self.MoGetImageOptionalHeader(ImageNtHeaders)
+        if ImageOptionalHeader is None: return None
 
         StartOffset = Entry*ctypes.sizeof(_IMAGE_DATA_DIRECTORY)
         EndOffset = StartOffset + ctypes.sizeof(_IMAGE_DATA_DIRECTORY)
@@ -1028,8 +1029,11 @@ class Windows(OsHelper):
     def MoGetImageDebugDirectory(self, ImageBaseAddress):
 
         ImageNtHeaders = self.MoGetImageNtHeaders(ImageBaseAddress)
+        if ImageNtHeaders is None: return None
 
         ImageDirectoryEntryDebug = self.MoGetImageDirectoryEntry(ImageNtHeaders, 6)
+        if ImageDirectoryEntryDebug is None: return None
+
         ImageDebugDirectory = self.helper.ReadStructure(ImageBaseAddress+ImageDirectoryEntryDebug.VirtualAddress, 'nt!_IMAGE_DEBUG_DIRECTORY')
         
         return ImageDebugDirectory
@@ -1037,6 +1041,7 @@ class Windows(OsHelper):
     def MoGetImageOptionalHeader(self, ImageNtHeaders):
 
         ImageOptionalHeader = self.helper.ReadStructure(ImageNtHeaders.OptionalHeader, 'nt!_IMAGE_OPTIONAL_HEADER64')
+        if ImageOptionalHeader is None: return None
     
         if ImageOptionalHeader.Magic == 0x10B:
             ImageOptionalHeader = self.helper.ReadStructure(ImageNtHeaders.OptionalHeader, 'nt!_IMAGE_OPTIONAL_HEADER32')
@@ -1046,6 +1051,8 @@ class Windows(OsHelper):
     def MoGetImageNtHeaders(self, ImageBaseAddress):
 
         ImageDosHeader = self.helper.ReadStructure(ImageBaseAddress, 'nt!_IMAGE_DOS_HEADER')
+        if ImageDosHeader is None: return None
+
         ImageNtHeaders = self.helper.ReadStructure(ImageBaseAddress + ImageDosHeader.e_lfanew, 'nt!_IMAGE_NT_HEADERS64')
         return ImageNtHeaders
 

@@ -368,7 +368,7 @@ class Helper():
     def ReadStructure(self, VirtualAddress, Type):
 
         if VirtualAddress is None:
-            return None
+                return None
 
         if isinstance(Type, str):
             Structure = self.symbol.PdbToCTypes(Type)
