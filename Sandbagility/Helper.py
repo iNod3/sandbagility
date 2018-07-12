@@ -606,7 +606,7 @@ class Helper():
 
     def MoGetModuleByName(self, module, Process=None):
 
-        if Process is None: ActiveProcess = self.PsGetCurrentProcess(loadLdr=True)
+        if Process is None: ActiveProcess = self.PsGetCurrentProcess(Detail=True)
         else: ActiveProcess = Process
 
         if ActiveProcess.WoW64Process and ActiveProcess.LdrData32:
@@ -664,7 +664,7 @@ class Helper():
 
         LoadedModuleCount = 0
 
-        ActiveProcess = self.PsGetCurrentProcess(loadLdr=True)
+        ActiveProcess = self.PsGetCurrentProcess(Detail=True)
 
         if ActiveProcess.WoW64Process and ActiveProcess.LdrData32:
             for Module in ActiveProcess.LdrData32.Modules:
@@ -752,7 +752,7 @@ class Helper():
 
     def SymGetUserModuleByAddress(self, Address, Process=None):
 
-        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
+        if Process is None: Process = self.PsGetCurrentProcess(Detail=True)
 
         if Process.WoW64Process and Process.LdrData32:
             for Module in Process.LdrData32.Modules:
@@ -789,7 +789,7 @@ class Helper():
 
     def SymLookupByAddress(self, Address, Process=None):
 
-        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
+        if Process is None: Process = self.PsGetCurrentProcess(Detail=True)
 
         if not (Address & 0xfff0000000000000):
             Module = self.SymGetUserModuleByAddress(Address=Address, Process=Process)
@@ -812,7 +812,7 @@ class Helper():
 
     def SymLookupByName(self, Symbol, Process=None):
 
-        if Process is None: Process = self.PsGetCurrentProcess(loadLdr=True)
+        if Process is None: Process = self.PsGetCurrentProcess(Detail=True)
 
         if Symbol.find('!') != -1:
             Module = self.MoGetModuleByName(Symbol.split('!')[0])

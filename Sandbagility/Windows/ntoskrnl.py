@@ -357,7 +357,7 @@ class ProcessObject(dummy):
 
     OBJECT_TYPE = 'Process'
 
-    def __init__(self, helper, eprocess, loadLdr=False):
+    def __init__(self, helper, eprocess, Detail=False):
 
         # super().__init__(helper, eprocess)
 
@@ -373,7 +373,7 @@ class ProcessObject(dummy):
         self.eprocess = self.Object
         self.logger = self.helper.os.logger
 
-        self.__parse_eprocess__(loadLdr)
+        self.__parse_eprocess__(Detail)
 
     def __eq__(self, other):
 
@@ -397,7 +397,7 @@ class ProcessObject(dummy):
     def __restore_process_context__(self):
         self.helper.dbg.cr3 = self.PreviousDirectoryTableBase
 
-    def __parse_eprocess__(self, loadLdr):
+    def __parse_eprocess__(self, Detail):
 
         self.DirectoryTableBase = self.helper.ReadStructureMember64(self.eprocess, 'nt!_KPROCESS', 'DirectoryTableBase')
 
@@ -415,11 +415,11 @@ class ProcessObject(dummy):
         self.Peb = EProcess.Peb
 
         if self.Peb:
-            self.__parse_peb__(loadLdr=loadLdr)
+            self.__parse_peb__(Detail=Detail)
             self.__parse_rtl_user_process_paramters__()
 
         if self.WoW64Process:
-            self.__parse_peb32__(loadLdr=loadLdr)
+            self.__parse_peb32__(Detail=Detail)
             self.__parse_rtl_user_process_paramters__()
 
         if self.ImageFileName is None:
@@ -438,7 +438,7 @@ class ProcessObject(dummy):
 
         self.__restore_process_context__()
 
-    def __parse_peb__(self, loadLdr=False):
+    def __parse_peb__(self, Detail=False):
 
         _Peb = self.helper.ReadStructure(self.Peb, 'nt!_PEB')
         if _Peb is None: return None
@@ -447,7 +447,7 @@ class ProcessObject(dummy):
 
         self.ImageBaseAddress = _Peb.ImageBaseAddress
 
-        if loadLdr and self.Ldr:
+        if Detail and self.Ldr:
             self.LdrData = Ldr(self.helper, self.Ldr)
         else: self.LdrData = None
 
@@ -456,7 +456,7 @@ class ProcessObject(dummy):
 
         return _Peb
 
-    def __parse_peb32__(self, loadLdr=False):
+    def __parse_peb32__(self, Detail=False):
 
         Peb32 = self.helper.ReadStructureMember64(self.WoW64Process, 'nt!_EWOW64PROCESS', 'Peb')
 
@@ -464,7 +464,7 @@ class ProcessObject(dummy):
 
         self.Ldr32 = self.helper.ReadStructureMember32(Peb32, 'nt!_PEB32', 'Ldr')
 
-        if loadLdr and self.Ldr32: self.LdrData32 = Ldr32(self.helper, self.Ldr32)
+        if Detail and self.Ldr32: self.LdrData32 = Ldr32(self.helper, self.Ldr32)
         else: self.LdrData32 = None
 
     def __parse_rtl_user_process_paramters__(self):
@@ -771,21 +771,21 @@ class Windows(OsHelper):
 
         return ThreadObject(self.helper, CurrentThread)
 
-    def PsGetCurrentProcess(self, loadLdr=False):
+    def PsGetCurrentProcess(self, Detail=False):
         '''
             @brief Return the current process context
             The Current process is slightly deferent from a native ProcessObject
             because it contains some information base on the current thread
         '''
         CurrentThread = self.PsGetCurrentThread()  # ThreadObject(self.helper, EThread)
-        ActiveProcess = ProcessObject(self.helper, CurrentThread.Process, loadLdr=loadLdr)
+        ActiveProcess = ProcessObject(self.helper, CurrentThread.Process, Detail=Detail)
         ActiveProcess.Cid.Tid = CurrentThread.Cid.Tid
 
         ActiveProcess.Thread = CurrentThread
 
         return ActiveProcess
 
-    def PsEnumProcesses(self, loadLdr=False):
+    def PsEnumProcesses(self, Detail=False):
         '''
             @brief Enumerate all process linked by the ActiveProcessLink
         '''
@@ -797,7 +797,7 @@ class Windows(OsHelper):
         ActiveProcessLink = self.helper.ReadVirtualMemory64(PsActiveProcessHead)
 
         while PsActiveProcessHead != ActiveProcessLink:
-            yields.append( ProcessObject(self.helper, ActiveProcessLink - ActiveProcessLinkOffset, loadLdr=loadLdr) )
+            yields.append( ProcessObject(self.helper, ActiveProcessLink - ActiveProcessLinkOffset, Detail=Detail) )
             ActiveProcessLink = self.helper.ReadVirtualMemory64(ActiveProcessLink)
 
         return yields

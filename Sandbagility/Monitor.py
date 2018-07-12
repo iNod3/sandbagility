@@ -53,7 +53,7 @@ class Monitor():
 
     @property
     def ActiveProcess(self):
-        return self.helper.PsGetCurrentProcess(loadLdr=False)
+        return self.helper.PsGetCurrentProcess(Detail=False)
 
     @property
     def Name(self): return self._NAME
@@ -599,7 +599,7 @@ class UserlandMonitor(Monitor):
 
     def SymLookupByAddress(self, Address):
 
-        ActiveProcess = self.helper.PsGetCurrentProcess(loadLdr=True)
+        ActiveProcess = self.helper.PsGetCurrentProcess(Detail=True)
 
         Symbol = self.helper.symbol.LookupByAddr(Address)
         if Symbol is not None:
