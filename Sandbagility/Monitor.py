@@ -67,6 +67,17 @@ class Monitor():
     @Cache.setter
     def Cache(self, value): self._cache[self._NAME] = value
 
+    @property
+    def InstructionPointer(self):
+
+        Rip = self.helper.dbg.rip
+
+        if Rip & 0xfff0000000000000:
+            if hasattr(self.ActiveProcess, 'Thread') and hasattr(self.ActiveProcess.Thread, 'TrapFrame'):
+                return self.ActiveProcess.Thread.TrapFrame.Rip
+
+        return Rip
+
     def __init__(self, helper, Process=None, mode=MONITOR_MODE_USER, verbose=False):
 
         self._cache = {}
@@ -261,9 +272,9 @@ class Monitor():
             return
 
         self.logger.info(
-            '{:<30}: Process: {:<20}, Cid: {:>10}, {}'.format(
+            '{:<30}: Process: {:<20}, Cid: {:>10}, Rip: {:>16x}, {}'.format(
                 self.LastOperation.Action, self.LastOperation.Process.ImageFileName, str(
-                    self.LastOperation.Process.Cid), repr(self.LastOperation.Detail)
+                    self.LastOperation.Process.Cid), self.LastOperation.Rip, repr(self.LastOperation.Detail)
             )
         )
 
@@ -284,7 +295,7 @@ class Monitor():
                 Status = func(self, *args, **kwargs)
 
                 if not self.LastOperation.isEmpty:
-                    self.LastOperation.Save(StartTimestamp=StartTimestamp, StopTimestamp=time.time())
+                    self.LastOperation.Save(StartTimestamp=StartTimestamp, StopTimestamp=time.time(), Rip=self.InstructionPointer)
 
             if not self.PostCallbacks:
                 pass
