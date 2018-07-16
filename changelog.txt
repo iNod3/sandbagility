@@ -1,0 +1,6 @@
+=== last features ===
+
+* [Experimental] Rpc client/server mainly for interoperability between IDA with python2.7 and python
+* [ntoskrnl][ProcessObject] Virtual Address Descriptor is now supported... usefull to search for a specific pattern in the process address space
+* [Monitor] Default output from each monitors include the current instruction pointer address, especially the user return address if found
+* bugs fixes
