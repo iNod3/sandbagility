@@ -23,7 +23,7 @@ Sandbagility uses a modified version of VirtualBox (check Winbagility project).
 - Install VirtualBox drivers, open a command line as Administator:
 ```` cmd
 cd VBoxBin-r3\VBoxBin
-set PATH=%PATH%;kmk
+set PATH=%PATH%;%~dp0kmk
 comregister.cmd
 loadall.cmd
 ````
